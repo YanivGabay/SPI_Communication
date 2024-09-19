@@ -18,3 +18,4 @@ class read write potenmizter
 same for dac
 and each class should have an init
 
+HELLO
