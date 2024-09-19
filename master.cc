@@ -1,9 +1,13 @@
 // Master Code
 
+const int SLAVE_1 = 10;
+const int SLAVE_2_POTE = 9;
+
 int clockPin = 13;
-int chipSelectPin = 10;
+int chipSelectPin = SLAVE_1;
 int mosiPin = 11;
 int misoPin = 12;
+int chipSelectPin2 = SLAVE_2_POTE;
 
 // Global variables
 unsigned long dataToSend = 0;    // Variable to store the user-defined message
@@ -16,15 +20,17 @@ class SPI {
 private:
   int clockPin;
   int chipSelectPin;
+  int chipSelectPin2;
   int mosiPin;
   int misoPin;
   int baseDelay;
 
 public:
   // Constructor
-  SPI(int clkPin, int csPin, int mosi, int miso, int delayTime) {
+  SPI(int clkPin, int csPin,int cs_2pin, int mosi, int miso, int delayTime) {
     clockPin = clkPin;
     chipSelectPin = csPin;
+    chipSelectPin2 = cs_2pin;
     mosiPin = mosi;
     misoPin = miso;
     baseDelay = delayTime;
@@ -36,6 +42,7 @@ public:
     pinMode(chipSelectPin, OUTPUT);
     pinMode(mosiPin, OUTPUT);
     pinMode(misoPin, INPUT);
+    digitalWrite(chipSelectPin2,HIGH); // Deselect Slave by setting CS HIGH
     digitalWrite(chipSelectPin, HIGH);  // Deselect Slave by setting CS HIGH
     digitalWrite(clockPin, LOW);        // Initialize CLOCK to LOW
   }
@@ -43,13 +50,20 @@ public:
     return baseDelay;
   }
   // Select the Slave
-  void selectSlave() {
-    digitalWrite(chipSelectPin, LOW);  // Select the Slave
+  void selectSlave(int slaverNumber) {
+     if (slaveNumber == 1) {
+      digitalWrite(csPin1, LOW);  // Select Slave 1
+      digitalWrite(csPin2, HIGH); // Deselect Slave 2
+    } else if (slaveNumber == 2) {
+      digitalWrite(csPin1, HIGH); // Deselect Slave 1
+      digitalWrite(csPin2, LOW);  // Select Slave 2
+    }
   }
 
   // Deselect the Slave
-  void deselectSlave() {
-    digitalWrite(chipSelectPin, HIGH);  // Deselect the Slave
+void deselectAllSlaves() {
+    digitalWrite(csPin1, HIGH); // Deselect Slave 1
+    digitalWrite(csPin2, HIGH); // Deselect Slave 2
   }
 
   // Send bits to the slave
@@ -82,7 +96,7 @@ public:
 };
 
 // Instantiate SPI object
-SPI spi(clockPin, chipSelectPin, mosiPin, misoPin, baseDelay);
+SPI spi(clockPin, chipSelectPin,chipSelectPin2, mosiPin, misoPin, baseDelay);
 
 void setup() {
   Serial.begin(9600);  // Initialize serial communication
@@ -125,12 +139,12 @@ void setup() {
   }
 
   // Re-initialize SPI with the new delay
-  spi = SPI(clockPin, chipSelectPin, mosiPin, misoPin, baseDelay);
+  spi = SPI(clockPin, chipSelectPin,chipSelectPin2 ,mosiPin, misoPin, baseDelay);
   spi.begin();  // Re-initialize pins with possibly updated baseDelay
 }
 
 void loop() {
-  spi.selectSlave();  // Select the Slave
+  spi.selectSlave(1);  // Select the Slave
 
   // First, send numBits to the slave as 8 bits
   spi.sendBits(numBits, 8);
@@ -138,7 +152,7 @@ void loop() {
   // Now, send and receive the chosen number of bits
   dataReceived = spi.transfer(dataToSend, numBits);
 
-  spi.deselectSlave();  // Deselect the Slave
+ spi.deselectAllSlaves();  // Deselect all slaves
 
   // Print the sent and received data
   Serial.print("Data sent: ");
