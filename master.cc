@@ -119,7 +119,7 @@ void setup() {
   while (Serial.available() == 0) {
   }  // Wait for input
   baseDelay = Serial.parseInt();  // Read base delay from user
-  if (baseDelay <= 0) {           // Validate baseDelay
+  if (baseDelay <= 150) {           // Validate baseDelay
     baseDelay = 250;              // Default to 250 ms if input is invalid
     Serial.println("Invalid input. Defaulting to 250 ms.");
   }
