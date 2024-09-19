@@ -52,7 +52,7 @@ public:
     return baseDelay;
   }
   // Select the Slave
-  void selectSlave(int slaverNumber) {
+  void selectSlave(int slaveNumber) {
      if (slaveNumber == 1) {
       digitalWrite(chipSelectPin, LOW);  // Select Slave 1
       digitalWrite(chipSelectPin2, HIGH); // Deselect Slave 2
@@ -136,35 +136,9 @@ ADC adc;
 
 void setup() {
   Serial.begin(9600);  // Initialize serial communication
-  spi.begin();   
+  //spi.begin();   
   dac.init();
   adc.init();      // Initialize SPI pins
-
-  // Get number of bits from user
-  Serial.println("Enter the number of bits to send (1-32):");
-  while (Serial.available() == 0) {
-  }  // Wait for input
-  numBits = Serial.parseInt();  // Read number of bits from user
-  if (numBits < 1 || numBits > 32) {
-    numBits = 8;  // Default to 8 if input is invalid
-    Serial.println("Invalid input. Defaulting to 8 bits.");
-  }
-
-  // Get binary message from user
-  Serial.println("Enter the binary message to send:");
-  while (Serial.available() == 0) {
-  }                                            // Wait for input
-  String input = Serial.readStringUntil('\n');  // Read binary message as a string
-  input.trim();                                 // Remove any leading/trailing spaces
-
-  // Convert the binary string to a number
-  dataToSend = strtoul(input.c_str(), NULL, 2);
-
-  // Validate the length of the message fits the bit length
-  if (input.length() > numBits) {
-    Serial.println("Message too long. Truncating to the specified number of bits.");
-    dataToSend &= ((1UL << numBits) - 1);  // Truncate message to fit the bit length
-  }
 
   // Get base delay from user
   Serial.println("Enter the base delay in milliseconds (e.g., 250):");
@@ -182,20 +156,23 @@ void setup() {
 }
 
 void loop() {
-  spi.selectSlave(1);  // Select the Slave
+    Serial.println("Enter command (e.g., WR_ADC, READ_ADC, WR_DAC, READ_DAC):");
+  while (Serial.available() == 0) {
+    // Wait for input
+  }
+  String command = Serial.readStringUntil('\n');
+  command.trim();  // Remove leading/trailing whitespace
 
-  // First, send numBits to the slave as 8 bits
-  spi.sendBits(numBits, 8);
-
-  // Now, send and receive the chosen number of bits
-  dataReceived = spi.transfer(dataToSend, numBits);
-
- spi.deselectAllSlaves();  // Deselect all slaves
-
-  // Print the sent and received data
-  Serial.print("Data sent: ");
-  Serial.println(dataToSend, BIN);
-  Serial.print("Data received: ");
-  Serial.println(dataReceived, BIN);
+   if (command == "WR_ADC") {
+    adc.write();
+  } else if (command == "READ_ADC") {
+    adc.read();
+  } else if (command == "WR_DAC") {
+    dac.write();
+  } else if (command == "READ_DAC") {
+    dac.read();
+  } else {
+    Serial.println("Invalid command.");
+  }
   delay(spi.getBaseDelay()*4);  // Wait before the next communication cycle
 }
