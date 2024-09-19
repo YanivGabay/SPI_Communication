@@ -8,7 +8,7 @@ int chipSelectPin = SLAVE_1;
 int mosiPin = 11;
 int misoPin = 12;
 int chipSelectPin2 = SLAVE_2_POTE;
-
+int slaveNumber;
 // Global variables
 unsigned long dataToSend = 0;    // Variable to store the user-defined message
 unsigned long dataReceived = 0;  // Variable to store received data
@@ -52,18 +52,18 @@ public:
   // Select the Slave
   void selectSlave(int slaverNumber) {
      if (slaveNumber == 1) {
-      digitalWrite(csPin1, LOW);  // Select Slave 1
-      digitalWrite(csPin2, HIGH); // Deselect Slave 2
+      digitalWrite(chipSelectPin, LOW);  // Select Slave 1
+      digitalWrite(chipSelectPin2, HIGH); // Deselect Slave 2
     } else if (slaveNumber == 2) {
-      digitalWrite(csPin1, HIGH); // Deselect Slave 1
-      digitalWrite(csPin2, LOW);  // Select Slave 2
+      digitalWrite(chipSelectPin, HIGH); // Deselect Slave 1
+      digitalWrite(chipSelectPin2, LOW);  // Select Slave 2
     }
   }
 
   // Deselect the Slave
 void deselectAllSlaves() {
-    digitalWrite(csPin1, HIGH); // Deselect Slave 1
-    digitalWrite(csPin2, HIGH); // Deselect Slave 2
+    digitalWrite(chipSelectPin, HIGH); // Deselect Slave 1
+    digitalWrite(chipSelectPin2, HIGH); // Deselect Slave 2
   }
 
   // Send bits to the slave
